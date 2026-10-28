@@ -1,6 +1,47 @@
 const express = require('express');
+const { body, param, validationResult } = require('express-validator');
 const app = express();
 const port = process.env.PORT || 3000;
+
+
+app.post(
+  '/api/users',
+  [
+    body('name', 'Imię jest wymagane i nie może być puste').notEmpty(),
+    body('email', 'Podaj poprawny adres e-mail').isEmail()
+  ],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const user = req.body;
+    res.status(201).json({
+      message: 'Użytkownik utworzony pomyślnie',
+      user
+    });
+  }
+);
+
+app.put(
+  '/api/users/:id',
+  [
+    param('id').isInt().withMessage('ID użytkownika musi być liczbą całkowitą'),
+    body('name').optional().notEmpty().withMessage('Imię nie może być puste')
+  ],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const id = Number(req.params.id);
+    res.status(200).json({
+      message: `Zaktualizowano użytkownika o ID: ${id}`,
+      data: req.body
+    });
+  }
+);
 
 const userRouter = express.Router();
 

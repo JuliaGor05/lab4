@@ -1,6 +1,25 @@
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 3000;
+
+const userRouter = express.Router();
+
+userRouter.use((req, res, next) => {
+  console.log('Żądanie przeszło przez middleware routera użytkowników');
+  next();
+});
+
+userRouter.get('/', (req, res) => {
+  res.json({ list: ['Jan', 'Anna', 'Katarzyna'] });
+});
+
+app.use('/api/v2/users', userRouter);
+
+
+app.use(express.urlencoded({ extended: false }));
+
+app.use(express.static('public'));
+
 app.get('/', (req, res) => {
  res.send('Witaj w aplikacji Express!');
 });
@@ -25,6 +44,17 @@ app.get('/api/users/search', (req, res) => {
     message: 'Wyniki wyszukiwania',
     name, 
     page 
+  });
+});
+
+app.use(express.json());
+
+app.post('/api/users', (req, res) => {
+  const user = req.body;
+
+  res.status(201).json({
+    message: 'Użytkownik utworzony pomyślnie',
+    data: user
   });
 });
 
@@ -56,3 +86,11 @@ app.put('/api/users/:id', (req, res) => {
 app.delete('/api/users/:id', (req, res) => {
   res.status(204).send();
 });
+
+const logger = (req, res, next) => {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${req.method} ${req.url}`);
+  next();
+};
+
+app.use(logger);
